@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <map>
 #include <algorithm>
+#include <list>
 
 using namespace std;
 
@@ -41,15 +42,29 @@ void printSortedItems(vector<pair<int,int> > items)
 	}
 }
 
+// sorts the transactions in the order that the header table is in
+vector<vector<int> > sortTransactions(vector<vector<int> > transactions, vector<pair<int,int> > sortedHeaderTable)
+{
+	list<int> tempTransaction;
+	
+	for (int i=0; i<transactions.size(); i++)
+	{
+		for (int j=0; j<transactions[i].size(); j++)
+		{
+			tempTransaction.push_back(transactions[i][j]);
+		}
+	}
+}
+
 // function used to sort the header table pairs
-bool sortFunction(pair<int,int> i, pair<int,int> j)
+bool sortHeaderTableFunction(pair<int,int> i, pair<int,int> j)
 {
 	return (i.second >= j.second);
 }
 
 // sorts the items in the header table map into pairs in a vector
 // since maps can't be sorted on their keys
-vector<pair<int,int> > sortItems(map<int, int> items)
+vector<pair<int,int> > sortHeaderTable(map<int, int> items)
 {
 	vector<pair<int,int> > sortedItems;
 	
@@ -57,7 +72,7 @@ vector<pair<int,int> > sortItems(map<int, int> items)
 	{
 		sortedItems.push_back(*it);
 	}
-	sort(sortedItems.begin(), sortedItems.end(), sortFunction);
+	sort(sortedItems.begin(), sortedItems.end(), sortHeaderTableFunction);
 	
 	return sortedItems;
 }
@@ -68,7 +83,7 @@ main()
 	char character;
 	int arraySize;
 	ifstream file ("10k5L.txt");
-	vector<vector<int> > itemSets;
+	vector<vector<int> > transactions;
 	map<int,int> headerTable;
 	vector<pair<int,int> > sortedHeaderTable;
 	
@@ -124,7 +139,7 @@ main()
 
 				i++;
 			}
-			itemSets.push_back(itemSet);
+			transactions.push_back(itemSet);
 		}
 		file.close();
 	}
@@ -133,13 +148,17 @@ main()
 		cout << "Unable to open file";
 	}
 
-//	printVector(itemSets); // debug
+//	printVector(transactions); // debug
 //	cout << "Map" << endl; // debug
 //	printMap(headerTable); // debug
 //	cout << endl; // debug
-	sortedHeaderTable = sortItems(headerTable);
+	sortedHeaderTable = sortHeaderTable(headerTable);
 	printSortedItems(sortedHeaderTable); // debug
-	cout << "End of processing."; // debug
 	
-	// Sort the itemsets
+	// Sort the transactions
+	vector<vector<int> > sortedTransactions = sortTransactions(transactions, sortedHeaderTable);
+	
+	// Create the tree and maybe ouput it or something? Who knows
+	
+	cout << "End of processing."; // debug
 }
