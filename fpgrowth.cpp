@@ -5,7 +5,6 @@
 #include <cstdlib>
 #include <map>
 #include <algorithm>
-#include <list>
 
 using namespace std;
 
@@ -45,15 +44,29 @@ void printSortedItems(vector<pair<int,int> > items)
 // sorts the transactions in the order that the header table is in
 vector<vector<int> > sortTransactions(vector<vector<int> > transactions, vector<pair<int,int> > sortedHeaderTable)
 {
-	list<int> tempTransaction;
+	vector<vector<int> > sortedTransactions;
 	
 	for (int i=0; i<transactions.size(); i++)
 	{
-		for (int j=0; j<transactions[i].size(); j++)
+		vector<int> sortedTransaction;
+		
+		for (vector<pair<int,int> >::iterator it = sortedHeaderTable.begin(); it != sortedHeaderTable.end(); ++it)
 		{
-			tempTransaction.push_back(transactions[i][j]);
+			if (find(transactions[i].begin(), transactions[i].end(), it->first) != transactions[i].end())
+			{
+				cout << "Found " << it->first << endl;
+				sortedTransaction.push_back(it->first);
+			}
+			else
+			{
+				cout << "Didn't find " << it->first << endl;
+			}
 		}
+		
+		sortedTransactions.push_back(sortedTransaction);
 	}
+	
+	return sortedTransactions;
 }
 
 // function used to sort the header table pairs
@@ -82,7 +95,7 @@ main()
 	string line;
 	char character;
 	int arraySize;
-	ifstream file ("10k5L.txt");
+	ifstream file ("test_data.txt");
 	vector<vector<int> > transactions;
 	map<int,int> headerTable;
 	vector<pair<int,int> > sortedHeaderTable;
@@ -153,10 +166,11 @@ main()
 //	printMap(headerTable); // debug
 //	cout << endl; // debug
 	sortedHeaderTable = sortHeaderTable(headerTable);
-	printSortedItems(sortedHeaderTable); // debug
+//	printSortedItems(sortedHeaderTable); // debug
 	
 	// Sort the transactions
 	vector<vector<int> > sortedTransactions = sortTransactions(transactions, sortedHeaderTable);
+	printVector(sortedTransactions); // debug
 	
 	// Create the tree and maybe ouput it or something? Who knows
 	
