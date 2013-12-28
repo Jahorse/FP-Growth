@@ -41,11 +41,14 @@ void printSortedItems(vector<pair<int,int> > items)
 	}
 }
 
+// function used to sort the header table pairs
 bool sortFunction(pair<int,int> i, pair<int,int> j)
 {
 	return (i.second >= j.second);
 }
 
+// sorts the items in the header table map into pairs in a vector
+// since maps can't be sorted on their keys
 vector<pair<int,int> > sortItems(map<int, int> items)
 {
 	vector<pair<int,int> > sortedItems;
@@ -64,9 +67,10 @@ main()
 	string line;
 	char character;
 	int arraySize;
-	ifstream file ("test_data.txt");
-	vector<vector<int> > data;
+	ifstream file ("10k5L.txt");
+	vector<vector<int> > itemSets;
 	map<int,int> headerTable;
+	vector<pair<int,int> > sortedHeaderTable;
 	
 	//open file
 	if (file.is_open())
@@ -120,7 +124,7 @@ main()
 
 				i++;
 			}
-			data.push_back(itemSet);
+			itemSets.push_back(itemSet);
 		}
 		file.close();
 	}
@@ -129,10 +133,13 @@ main()
 		cout << "Unable to open file";
 	}
 
-	printVector(data); // debug
-	cout << "Map" << endl; // debug
-	printMap(headerTable); // debug
-	cout << endl; // debug
-	vector<pair<int,int> > sortedHeaderTable = sortItems(headerTable);
+//	printVector(itemSets); // debug
+//	cout << "Map" << endl; // debug
+//	printMap(headerTable); // debug
+//	cout << endl; // debug
+	sortedHeaderTable = sortItems(headerTable);
 	printSortedItems(sortedHeaderTable); // debug
+	cout << "End of processing."; // debug
+	
+	// Sort the itemsets
 }
