@@ -27,7 +27,7 @@ void Tree::insert(vector<int> transaction)
 	if(root->child.empty())  
 	{     
 		//add each element of the transaction  
-		for(int i = 0; i < transaction.size(); i++)  
+		for(size_t i = 0; i < transaction.size(); i++)  
 		{  
 			Node *new_node = new Node;  
 			new_node->item = transaction.at(i);  
@@ -40,11 +40,11 @@ void Tree::insert(vector<int> transaction)
 	} 
 	else
 	{ 
-		for(int i = 0; i < transaction.size(); i++) 
+		for(size_t i = 0; i < transaction.size(); i++) 
 		{ 
 			if(!createNewBranch) 
 			{ 
-				for(int j = 0; j < current_node->child.size(); j++) 
+				for(size_t j = 0; j < current_node->child.size(); j++) 
 				{ 
 					if(transaction.at(i) == current_node->child.at(j)->item) 
 					{ 
@@ -84,7 +84,7 @@ void Tree::insert(vector<int> transaction)
 
 void Tree::projTable(int val, int count, vector<vector<int> > *projTable, map<int,int> *projHeaderTable)
 {
-	for (int i = 0; i < root->child.size(); i++)
+	for (size_t i = 0; i < root->child.size(); i++)
 	{
 		projTableRecursion(val, &count, projTable, projHeaderTable, root->child.at(i));
 	}
@@ -117,7 +117,7 @@ void Tree::projTableRecursion(int val, int *count, vector<vector<int> > *projTab
 			(*projHeaderTable)[currentNode->item] += node->sup;
 			currentNode = currentNode->parent;
 		}
-		for (int i = 0; i < node->sup; i++)
+		for (size_t i = 0; i < node->sup; i++)
 		{
 			(*projTable).push_back(itemSet);
 			(*count)--;
@@ -127,7 +127,7 @@ void Tree::projTableRecursion(int val, int *count, vector<vector<int> > *projTab
 	{
 		if (*count > 0)
 		{
-			for (int i = 0; i < node->child.size(); i++)
+			for (size_t i = 0; i < node->child.size(); i++)
 			{
 				projTableRecursion(val, count, projTable, projHeaderTable, node->child.at(i));
 			}

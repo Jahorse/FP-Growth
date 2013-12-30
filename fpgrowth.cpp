@@ -13,9 +13,9 @@ using namespace std;
 // debug
 void printVector(vector<vector<int> > data)
 {
-	for (int i=0; i < data.size(); i++) {
+	for (size_t i=0; i < data.size(); i++) {
 		vector<int> itemSet = data.at(i);
-		for (int j=0; j < itemSet.size(); j++) {
+		for (size_t j=0; j < itemSet.size(); j++) {
 			cout << itemSet.at(j) << " ";
 		}
 		cout << endl;
@@ -37,7 +37,7 @@ void printMap(map<int,int> data)
 // debug
 void printSortedItems(vector<pair<int,int> > items)
 {
-	for (int i=0; i < items.size(); i++)
+	for (size_t i=0; i < items.size(); i++)
 	{
 		cout << items.at(i).first << " -> " << items.at(i).second << endl;
 	}
@@ -48,7 +48,7 @@ vector<vector<int> > sortTransactions(vector<vector<int> > transactions, vector<
 {
 	vector<vector<int> > sortedTransactions;
 	
-	for (int i=0; i<transactions.size(); i++)
+	for (size_t i = 0; i < transactions.size(); i++)
 	{
 		vector<int> sortedTransaction;
 		
@@ -69,7 +69,7 @@ vector<vector<int> > sortTransactions(vector<vector<int> > transactions, vector<
 // function used to sort the header table pairs
 bool sortHeaderTableFunction(pair<int,int> i, pair<int,int> j)
 {
-	return (i.second >= j.second);
+	return (i.second > j.second);
 }
 
 // sorts the items in the header table map into pairs in a vector
@@ -90,10 +90,90 @@ vector<pair<int,int> > sortHeaderTable(map<int, int> headerTable, int minSup)
 	return sortedHeaderTable;
 }
 
+void projectTables
+(
+	int minSup,
+	vector<vector<int> > sortedTransactions,
+	vector<pair<int,int> > sortedHeaderTable,
+	Tree fpTree,
+	vector<pair<vector<int>,int> > *frequentPatterns,
+	vector<int> currentPattern
+)
+{
+	pair<vector<int>,int> patternWithCount;
+
+	if (sortedHeaderTable.size() > 1)
+	{
+		for (size_t i = sortedHeaderTable.size() - 1; i > 0; i--)
+		{
+			vector<vector<int> > *projTransactions = new vector<vector<int> >;
+			map<int,int> *projHeaderTable = new map<int,int>;
+			vector<pair<int,int> > sortedProjHeaderTable;
+			vector<vector<int> > sortedProjTransactions;
+			Tree projTree;
+		
+			// Add the current frequent pattern to the list
+			currentPattern.push_back(sortedHeaderTable.at(i).first);
+			patternWithCount.first = currentPattern;
+			patternWithCount.second = sortedHeaderTable.at(i).second;
+			(*frequentPatterns).push_back(patternWithCount);
+
+			// Create the projected transactions and header table for the current item
+			fpTree.projTable(sortedHeaderTable.at(i).first, sortedHeaderTable.at(i).second, projTransactions, projHeaderTable);
+		
+			// Sort the projected header table
+			sortedProjHeaderTable = sortHeaderTable(*projHeaderTable, minSup);
+			printSortedItems(sortedProjHeaderTable); // debug
+		
+			// Sort the projected transactions
+			sortedProjTransactions = sortTransactions(*projTransactions, sortedProjHeaderTable);
+			printVector(sortedProjTransactions); // debug
+	
+			// Create the projected tree
+			for (size_t j = 0; j < sortedProjTransactions.size(); j++)
+			{
+				projTree.insert(sortedProjTransactions.at(j));
+			}
+		
+			// Do the recursive call
+			if (!sortedProjHeaderTable.empty())
+			{
+				projectTables(minSup, sortedProjTransactions, sortedProjHeaderTable, projTree, frequentPatterns, currentPattern);
+			}
+			currentPattern.clear();
+		}
+		// Add the current frequent pattern to the list
+		currentPattern.push_back(sortedHeaderTable.at(0).first);
+		patternWithCount.first = currentPattern;
+		patternWithCount.second = sortedHeaderTable.at(0).second;
+		(*frequentPatterns).push_back(patternWithCount);
+	}
+	else if (sortedHeaderTable.size() == 1)
+	{
+		// Add the current frequent pattern to the list
+		currentPattern.push_back(sortedHeaderTable.at(0).first);
+		patternWithCount.first = currentPattern;
+		patternWithCount.second = sortedHeaderTable.at(0).second;
+		(*frequentPatterns).push_back(patternWithCount);
+	}
+}
+
+// debug
+void printPatterns(vector<pair<vector<int>,int> > frequentPatterns)
+{
+	for (size_t i = 0; i < frequentPatterns.size(); i++)
+	{
+		for (size_t j = 0; j < frequentPatterns.at(i).first.size(); j++)
+		{
+			cout << frequentPatterns.at(i).first.at(j) << " ";
+		}
+		cout << "(" << frequentPatterns.at(i).second << ")" << endl;
+	}
+}
+
 int main()
 {
 	string line;
-	char character;
 	int arraySize;
 	int minSup;
 	string filename = "";
@@ -102,7 +182,7 @@ int main()
 	vector<pair<int,int> > sortedHeaderTable;
 	vector<vector<int> > sortedTransactions;
 	Tree fpTree;
-	
+	vector<pair<vector<int>,int> > frequentPatterns;
 	
 	// debug uncomment this when finished testing
 //	while (filename.size() == 0)
@@ -111,7 +191,7 @@ int main()
 //		getline(cin, filename);
 //	}
 
-	filename = "test_data.txt"; // debug
+	filename = "test1.txt"; // debug
 	
 	ifstream file(filename.c_str());
 	
@@ -138,7 +218,7 @@ int main()
 		{
 			string rawText = "";
 			int itemSetSize;
-			int i = 0;
+			size_t i = 0;
 
 			// Find the number of items on the line
 			while (line[i] != '\t')
@@ -185,23 +265,23 @@ int main()
 //	printMap(headerTable); // debug
 //	cout << endl; // debug
 	sortedHeaderTable = sortHeaderTable(headerTable, minSup);
-//	printSortedItems(sortedHeaderTable); // debug
+	printSortedItems(sortedHeaderTable); // debug
 	
 	// Sort the transactions
 	sortedTransactions = sortTransactions(transactions, sortedHeaderTable);
 	printVector(sortedTransactions); // debug
 	
 	// Create the tree
-	for (int i = 0; i < sortedTransactions.size(); i++)
+	for (size_t i = 0; i < sortedTransactions.size(); i++)
 	{
 		fpTree.insert(sortedTransactions.at(i));
 	}
 	
 	// Create the projection tables, their header tables, and their trees
-	for (int i = 0; i < sortedHeaderTable.size(); i++)
-	{
-		
-	}
+	vector<int> currentPattern;
+	projectTables(minSup, sortedTransactions, sortedHeaderTable, fpTree, &frequentPatterns, currentPattern);
+
+	printPatterns(frequentPatterns); // debug
 	
 	cout << "End of processing."; // debug
 }
