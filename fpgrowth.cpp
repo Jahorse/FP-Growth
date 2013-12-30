@@ -6,6 +6,8 @@
 #include <map>
 #include <algorithm>
 
+#include "fptree.hpp"
+
 using namespace std;
 
 // debug
@@ -54,12 +56,7 @@ vector<vector<int> > sortTransactions(vector<vector<int> > transactions, vector<
 		{
 			if (find(transactions[i].begin(), transactions[i].end(), it->first) != transactions[i].end())
 			{
-				cout << "Found " << it->first << endl;
 				sortedTransaction.push_back(it->first);
-			}
-			else
-			{
-				cout << "Didn't find " << it->first << endl;
 			}
 		}
 		
@@ -77,32 +74,54 @@ bool sortHeaderTableFunction(pair<int,int> i, pair<int,int> j)
 
 // sorts the items in the header table map into pairs in a vector
 // since maps can't be sorted on their keys
-vector<pair<int,int> > sortHeaderTable(map<int, int> items)
+vector<pair<int,int> > sortHeaderTable(map<int, int> headerTable, int minSup)
 {
-	vector<pair<int,int> > sortedItems;
+	vector<pair<int,int> > sortedHeaderTable;
 	
-	for (map<int,int>::iterator it = items.begin(); it != items.end(); ++it)
+	for (map<int,int>::iterator it = headerTable.begin(); it != headerTable.end(); ++it)
 	{
-		sortedItems.push_back(*it);
+		if (it->second >= minSup)
+		{
+			sortedHeaderTable.push_back(*it);
+		}
 	}
-	sort(sortedItems.begin(), sortedItems.end(), sortHeaderTableFunction);
+	sort(sortedHeaderTable.begin(), sortedHeaderTable.end(), sortHeaderTableFunction);
 	
-	return sortedItems;
+	return sortedHeaderTable;
 }
 
-main()
+int main()
 {
 	string line;
 	char character;
 	int arraySize;
-	ifstream file ("test_data.txt");
+	int minSup;
+	string filename = "";
 	vector<vector<int> > transactions;
 	map<int,int> headerTable;
 	vector<pair<int,int> > sortedHeaderTable;
+	vector<vector<int> > sortedTransactions;
+	Tree fpTree;
+	
+	
+	// debug uncomment this when finished testing
+//	while (filename.size() == 0)
+//	{
+//		cout << "Please enter the name of a valid file to mine" << endl;
+//		getline(cin, filename);
+//	}
+
+	filename = "test_data.txt"; // debug
+	
+	ifstream file(filename.c_str());
 	
 	//open file
 	if (file.is_open())
 	{
+		cout << "Please enter a minSup" << endl;
+		getline(cin, line);
+		minSup = atoi(line.c_str());
+	
 		//Get the first number in the file to determine the size of the array
 		if (getline(file,line))
 		{
@@ -158,21 +177,27 @@ main()
 	}
 	else
 	{
-		cout << "Unable to open file";
+		cout << "Unable to open file" << endl;
 	}
 
 //	printVector(transactions); // debug
 //	cout << "Map" << endl; // debug
 //	printMap(headerTable); // debug
 //	cout << endl; // debug
-	sortedHeaderTable = sortHeaderTable(headerTable);
+	sortedHeaderTable = sortHeaderTable(headerTable, minSup);
 //	printSortedItems(sortedHeaderTable); // debug
 	
 	// Sort the transactions
-	vector<vector<int> > sortedTransactions = sortTransactions(transactions, sortedHeaderTable);
+	sortedTransactions = sortTransactions(transactions, sortedHeaderTable);
 	printVector(sortedTransactions); // debug
 	
-	// Create the tree and maybe ouput it or something? Who knows
+	// Create the tree
+	for (int i = 0; i < sortedTransactions.size(); i++)
+	{
+		fpTree.insert(sortedTransactions.at(i));
+	}
+	
+	// Create the projection tables, their header tables, and their trees
 	
 	cout << "End of processing."; // debug
 }
