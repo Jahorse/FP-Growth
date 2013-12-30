@@ -1,47 +1,16 @@
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <cstdlib>
 #include <map>
 #include <algorithm>
+#include <time.h>
 
 #include "fptree.hpp"
 
 using namespace std;
-
-// debug
-void printVector(vector<vector<int> > data)
-{
-	for (size_t i=0; i < data.size(); i++) {
-		vector<int> itemSet = data.at(i);
-		for (size_t j=0; j < itemSet.size(); j++) {
-			cout << itemSet.at(j) << " ";
-		}
-		cout << endl;
-	}
-}
-
-// debug
-void printMap(map<int,int> data)
-{
-	map<int,int>::iterator it;
-
-	// show content:
-	for (map<int,int>::iterator it=data.begin(); it != data.end(); ++it)
-	{
-		cout << it->first << " => " << it->second << '\n';
-	}
-}
-
-// debug
-void printSortedItems(vector<pair<int,int> > items)
-{
-	for (size_t i=0; i < items.size(); i++)
-	{
-		cout << items.at(i).first << " -> " << items.at(i).second << endl;
-	}
-}
 
 // sorts the transactions in the order that the header table is in
 vector<vector<int> > sortTransactions(vector<vector<int> > transactions, vector<pair<int,int> > sortedHeaderTable)
@@ -123,11 +92,9 @@ void projectTables
 		
 			// Sort the projected header table
 			sortedProjHeaderTable = sortHeaderTable(*projHeaderTable, minSup);
-			printSortedItems(sortedProjHeaderTable); // debug
 		
 			// Sort the projected transactions
 			sortedProjTransactions = sortTransactions(*projTransactions, sortedProjHeaderTable);
-			printVector(sortedProjTransactions); // debug
 	
 			// Create the projected tree
 			for (size_t j = 0; j < sortedProjTransactions.size(); j++)
@@ -140,7 +107,7 @@ void projectTables
 			{
 				projectTables(minSup, sortedProjTransactions, sortedProjHeaderTable, projTree, frequentPatterns, currentPattern);
 			}
-			currentPattern.clear();
+			currentPattern.pop_back();
 		}
 		// Add the current frequent pattern to the list
 		currentPattern.push_back(sortedHeaderTable.at(0).first);
@@ -158,7 +125,6 @@ void projectTables
 	}
 }
 
-// debug
 void printPatterns(vector<pair<vector<int>,int> > frequentPatterns)
 {
 	for (size_t i = 0; i < frequentPatterns.size(); i++)
@@ -174,8 +140,14 @@ void printPatterns(vector<pair<vector<int>,int> > frequentPatterns)
 int main()
 {
 	string line;
-	int arraySize;
+	stringstream ss;
 	int minSup;
+	bool showFPs = false;
+	bool showTime = false;
+	bool cntFPs = false;
+	bool cntNodes = false;
+	int arraySize;
+	clock_t timer;
 	string filename = "";
 	vector<vector<int> > transactions;
 	map<int,int> headerTable;
@@ -185,22 +157,32 @@ int main()
 	vector<pair<vector<int>,int> > frequentPatterns;
 	
 	// debug uncomment this when finished testing
-//	while (filename.size() == 0)
-//	{
-//		cout << "Please enter the name of a valid file to mine" << endl;
-//		getline(cin, filename);
-//	}
+	while (filename.size() == 0 || minSup <= 0)
+	{
+		cout << "Usage: TDB minsup showFPs showTime cntFPs cntNodes" << endl;
 
-	filename = "test1.txt"; // debug
+		cin.clear();
+		getline(cin, line);
+
+		ss.clear();
+		ss << line;
+
+		ss >> filename;
+		ss >> minSup;
+		ss >> showFPs;
+		ss >> showTime;
+		ss >> cntFPs;
+		ss >> cntNodes;
+	}
+
+//	filename = "1k5L.txt"; // debug
 	
 	ifstream file(filename.c_str());
-	
+
 	//open file
 	if (file.is_open())
 	{
-		cout << "Please enter a minSup" << endl;
-		getline(cin, line);
-		minSup = atoi(line.c_str());
+		timer = clock();
 	
 		//Get the first number in the file to determine the size of the array
 		if (getline(file,line))
@@ -260,16 +242,9 @@ int main()
 		cout << "Unable to open file" << endl;
 	}
 
-//	printVector(transactions); // debug
-//	cout << "Map" << endl; // debug
-//	printMap(headerTable); // debug
-//	cout << endl; // debug
+	// Sort the header table and transactions
 	sortedHeaderTable = sortHeaderTable(headerTable, minSup);
-	printSortedItems(sortedHeaderTable); // debug
-	
-	// Sort the transactions
 	sortedTransactions = sortTransactions(transactions, sortedHeaderTable);
-	printVector(sortedTransactions); // debug
 	
 	// Create the tree
 	for (size_t i = 0; i < sortedTransactions.size(); i++)
@@ -281,7 +256,27 @@ int main()
 	vector<int> currentPattern;
 	projectTables(minSup, sortedTransactions, sortedHeaderTable, fpTree, &frequentPatterns, currentPattern);
 
-	printPatterns(frequentPatterns); // debug
-	
-	cout << "End of processing."; // debug
+	timer = clock() - timer;
+
+	cout << "=== FP-Growth TDB=" << filename << " minSup=" << minSup << " showFPs=";
+	if (showFPs) { cout << "Y"; } else { cout << "N"; }
+	cout << " showTime=";
+	if (showTime) { cout << "Y"; } else { cout << "N"; }
+	cout << " cntFPs=";
+	if (cntFPs) { cout << "Y"; } else { cout << "N"; }
+	cout << " cntNodes=";
+	if (cntNodes) { cout << "Y"; } else { cout << "N"; }
+	cout << " ===" << endl;
+
+	if (showFPs)
+	{
+		printPatterns(frequentPatterns);
+	}
+
+	if (showTime)
+	{
+		cout << "Program took " << ((float)timer) / CLOCKS_PER_SEC << " seconds to execute" << endl;
+	}
+
+	cout << "End of processing." << endl; // debug
 }
