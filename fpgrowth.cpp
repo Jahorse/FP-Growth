@@ -198,6 +198,10 @@ int main()
 	}
 	
 	// Create the projection tables, their header tables, and their trees
+	for (int i = 0; i < sortedHeaderTable.size(); i++)
+	{
+		
+	}
 	
 	cout << "End of processing."; // debug
 }
