@@ -66,7 +66,8 @@ void projectTables
 	vector<pair<int,int> > sortedHeaderTable,
 	Tree fpTree,
 	vector<pair<vector<int>,int> > *frequentPatterns,
-	vector<int> currentPattern
+	vector<int> currentPattern,
+	int *totalNodes
 )
 {
 	pair<vector<int>,int> patternWithCount;
@@ -101,11 +102,12 @@ void projectTables
 			{
 				projTree.insert(sortedProjTransactions.at(j));
 			}
+			*totalNodes += projTree.getNodeCount();
 		
 			// Do the recursive call
 			if (!sortedProjHeaderTable.empty())
 			{
-				projectTables(minSup, sortedProjTransactions, sortedProjHeaderTable, projTree, frequentPatterns, currentPattern);
+				projectTables(minSup, sortedProjTransactions, sortedProjHeaderTable, projTree, frequentPatterns, currentPattern, totalNodes);
 			}
 			currentPattern.pop_back();
 		}
@@ -146,6 +148,7 @@ int main()
 	bool showTime = false;
 	bool cntFPs = false;
 	bool cntNodes = false;
+	int totalNodes = 0;
 	int arraySize;
 	clock_t timer;
 	string filename = "";
@@ -254,7 +257,7 @@ int main()
 	
 	// Create the projection tables, their header tables, and their trees
 	vector<int> currentPattern;
-	projectTables(minSup, sortedTransactions, sortedHeaderTable, fpTree, &frequentPatterns, currentPattern);
+	projectTables(minSup, sortedTransactions, sortedHeaderTable, fpTree, &frequentPatterns, currentPattern, &totalNodes);
 
 	timer = clock() - timer;
 
@@ -276,6 +279,12 @@ int main()
 	if (showTime)
 	{
 		cout << "Program took " << ((float)timer) / CLOCKS_PER_SEC << " seconds to execute" << endl;
+	}
+
+	if (cntNodes)
+	{
+		cout << "Number of nodes: " << fpTree.getNodeCount() << " (global tree), ";
+		cout << totalNodes + fpTree.getNodeCount() << " (all trees)" << endl;
 	}
 
 	cout << "End of processing." << endl; // debug
