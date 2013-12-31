@@ -13,26 +13,27 @@
 using namespace std;
 
 // sorts the transactions in the order that the header table is in
-vector<vector<int> > sortTransactions(vector<vector<int> > transactions, vector<pair<int,int> > sortedHeaderTable)
+void sortTransactions
+(
+	vector<vector<int> > *transactions,
+	vector<pair<int,int> > *sortedHeaderTable,
+	vector<vector<int> > *sortedTransactions
+)
 {
-	vector<vector<int> > sortedTransactions;
-	
-	for (size_t i = 0; i < transactions.size(); i++)
+	for (size_t i = 0; i < (*transactions).size(); i++)
 	{
 		vector<int> sortedTransaction;
 		
-		for (vector<pair<int,int> >::iterator it = sortedHeaderTable.begin(); it != sortedHeaderTable.end(); ++it)
+		for (vector<pair<int,int> >::iterator it = (*sortedHeaderTable).begin(); it != (*sortedHeaderTable).end(); ++it)
 		{
-			if (find(transactions[i].begin(), transactions[i].end(), it->first) != transactions[i].end())
+			if (find((*transactions)[i].begin(), (*transactions)[i].end(), it->first) != (*transactions)[i].end())
 			{
 				sortedTransaction.push_back(it->first);
 			}
 		}
 		
-		sortedTransactions.push_back(sortedTransaction);
+		(*sortedTransactions).push_back(sortedTransaction);
 	}
-	
-	return sortedTransactions;
 }
 
 // function used to sort the header table pairs
@@ -43,20 +44,21 @@ bool sortHeaderTableFunction(pair<int,int> i, pair<int,int> j)
 
 // sorts the items in the header table map into pairs in a vector
 // since maps can't be sorted on their keys
-vector<pair<int,int> > sortHeaderTable(map<int, int> headerTable, int minSup)
+void sortHeaderTable
+(
+	map<int, int> *headerTable,
+	int minSup,
+	vector<pair<int,int> > *sortedHeaderTable
+)
 {
-	vector<pair<int,int> > sortedHeaderTable;
-	
-	for (map<int,int>::iterator it = headerTable.begin(); it != headerTable.end(); ++it)
+	for (map<int,int>::iterator it = (*headerTable).begin(); it != (*headerTable).end(); ++it)
 	{
 		if (it->second >= minSup)
 		{
-			sortedHeaderTable.push_back(*it);
+			(*sortedHeaderTable).push_back(*it);
 		}
 	}
-	sort(sortedHeaderTable.begin(), sortedHeaderTable.end(), sortHeaderTableFunction);
-	
-	return sortedHeaderTable;
+	sort((*sortedHeaderTable).begin(), (*sortedHeaderTable).end(), sortHeaderTableFunction);
 }
 
 void projectTables
@@ -93,11 +95,9 @@ void projectTables
 			// Create the projected transactions and header table for the current item
 			fpTree.projTable(sortedHeaderTable.at(i).first, sortedHeaderTable.at(i).second, projTransactions, projHeaderTable);
 		
-			// Sort the projected header table
-			sortedProjHeaderTable = sortHeaderTable(*projHeaderTable, minSup);
-		
-			// Sort the projected transactions
-			sortedProjTransactions = sortTransactions(*projTransactions, sortedProjHeaderTable);
+			// Sort the projected header table and transactions
+			sortHeaderTable(projHeaderTable, minSup, &sortedProjHeaderTable);
+			sortTransactions(projTransactions, &sortedProjHeaderTable, &sortedProjTransactions);
 	
 			// Create the projected tree
 			for (size_t j = 0; j < sortedProjTransactions.size(); j++)
@@ -192,8 +192,6 @@ int main()
 		ss >> cntFPs;
 		ss >> cntNodes;
 	}
-
-//	filename = "1k5L.txt"; // debug
 	
 	ifstream file(filename.c_str());
 
@@ -261,8 +259,8 @@ int main()
 	}
 
 	// Sort the header table and transactions
-	sortedHeaderTable = sortHeaderTable(headerTable, minSup);
-	sortedTransactions = sortTransactions(transactions, sortedHeaderTable);
+	sortHeaderTable(&headerTable, minSup, &sortedHeaderTable);
+	sortTransactions(&transactions, &sortedHeaderTable, &sortedTransactions);
 	
 	// Create the tree
 	for (size_t i = 0; i < sortedTransactions.size(); i++)
@@ -313,7 +311,7 @@ int main()
 		{
 			cout << "|L" << i << "| = " << fpCount[i] << endl;
 		}
-		cout << endl << endl;
+		cout << endl;
 	}
 	
 	if (cntNodes)
@@ -322,5 +320,5 @@ int main()
 		cout << totalNodes + fpTree.getNodeCount() << " (all trees)" << endl << endl;
 	}
 
-	cout << "End of processing." << endl; // debug
+	cout << "End of processing." << endl;
 }
