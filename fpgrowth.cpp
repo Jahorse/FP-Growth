@@ -67,7 +67,8 @@ void projectTables
 	Tree fpTree,
 	vector<pair<vector<int>,int> > *frequentPatterns,
 	vector<int> currentPattern,
-	int *totalNodes
+	int *totalNodes,
+	map<int,int> *fpCount
 )
 {
 	pair<vector<int>,int> patternWithCount;
@@ -87,6 +88,7 @@ void projectTables
 			patternWithCount.first = currentPattern;
 			patternWithCount.second = sortedHeaderTable.at(i).second;
 			(*frequentPatterns).push_back(patternWithCount);
+			(*fpCount)[currentPattern.size()]++;
 
 			// Create the projected transactions and header table for the current item
 			fpTree.projTable(sortedHeaderTable.at(i).first, sortedHeaderTable.at(i).second, projTransactions, projHeaderTable);
@@ -107,7 +109,17 @@ void projectTables
 			// Do the recursive call
 			if (!sortedProjHeaderTable.empty())
 			{
-				projectTables(minSup, sortedProjTransactions, sortedProjHeaderTable, projTree, frequentPatterns, currentPattern, totalNodes);
+				projectTables
+				(
+					minSup,
+					sortedProjTransactions,
+					sortedProjHeaderTable,
+					projTree,
+					frequentPatterns,
+					currentPattern,
+					totalNodes,
+					fpCount
+				);
 			}
 			currentPattern.pop_back();
 		}
@@ -116,6 +128,7 @@ void projectTables
 		patternWithCount.first = currentPattern;
 		patternWithCount.second = sortedHeaderTable.at(0).second;
 		(*frequentPatterns).push_back(patternWithCount);
+		(*fpCount)[currentPattern.size()]++;
 	}
 	else if (sortedHeaderTable.size() == 1)
 	{
@@ -124,6 +137,7 @@ void projectTables
 		patternWithCount.first = currentPattern;
 		patternWithCount.second = sortedHeaderTable.at(0).second;
 		(*frequentPatterns).push_back(patternWithCount);
+		(*fpCount)[currentPattern.size()]++;
 	}
 }
 
@@ -149,6 +163,7 @@ int main()
 	bool cntFPs = false;
 	bool cntNodes = false;
 	int totalNodes = 0;
+	map<int, int> fpCount;
 	int arraySize;
 	clock_t timer;
 	string filename = "";
@@ -257,7 +272,17 @@ int main()
 	
 	// Create the projection tables, their header tables, and their trees
 	vector<int> currentPattern;
-	projectTables(minSup, sortedTransactions, sortedHeaderTable, fpTree, &frequentPatterns, currentPattern, &totalNodes);
+	projectTables
+	(
+		minSup,
+		sortedTransactions,
+		sortedHeaderTable,
+		fpTree,
+		&frequentPatterns,
+		currentPattern,
+		&totalNodes,
+		&fpCount
+	);
 
 	timer = clock() - timer;
 
@@ -274,17 +299,27 @@ int main()
 	if (showFPs)
 	{
 		printPatterns(frequentPatterns);
+		cout << endl;
 	}
 
 	if (showTime)
 	{
-		cout << "Program took " << ((float)timer) / CLOCKS_PER_SEC << " seconds to execute" << endl;
+		cout << "Program took " << ((float)timer) / CLOCKS_PER_SEC << " seconds to execute" << endl << endl;
 	}
 
+	if (cntFPs)
+	{
+		for (size_t i = 1; i <= 10; i++)
+		{
+			cout << "|L" << i << "| = " << fpCount[i] << endl;
+		}
+		cout << endl << endl;
+	}
+	
 	if (cntNodes)
 	{
 		cout << "Number of nodes: " << fpTree.getNodeCount() << " (global tree), ";
-		cout << totalNodes + fpTree.getNodeCount() << " (all trees)" << endl;
+		cout << totalNodes + fpTree.getNodeCount() << " (all trees)" << endl << endl;
 	}
 
 	cout << "End of processing." << endl; // debug
